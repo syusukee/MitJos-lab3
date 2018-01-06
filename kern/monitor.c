@@ -60,9 +60,25 @@ int
 mon_backtrace(int argc, char **argv, struct Trapframe *tf)
 {
 	// Your code here.
+	struct Eipdebuginfo tmp;
+	uint32_t *cur_ebp = (uint32_t *) read_ebp();
+	uint32_t *pre_ebp;
+	cprintf("Stack backtrace:\n");
+	
+	while (1) {
+		pre_ebp = (uint32_t *)*cur_ebp;
+	    cprintf(" ebp %08x eip %08x args ", cur_ebp, cur_ebp[1]);
+	    for (int j = 2; j != 7; ++j) {
+	        cprintf(" %08x", cur_ebp[j]);   
+	    }
+	    debuginfo_eip(cur_ebp[1], &tmp);
+	    cprintf("\n     %s:%d: %.*s+%d\n", tmp.eip_file, tmp.eip_line, tmp.eip_fn_namelen, tmp.eip_fn_name, cur_ebp[1] - tmp.eip_fn_addr);
+    	if(!pre_ebp)
+    		break;
+    	cur_ebp = pre_ebp;
+	}
 	return 0;
 }
-
 
 
 /***** Kernel monitor command interpreter *****/
